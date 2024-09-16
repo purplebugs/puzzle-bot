@@ -17,6 +17,6 @@ rye run puzzle-bot
 
 ## Credits ⭐️
 
-- Based on solution from [puzzle-bot](https://github.com/roksenhorn/puzzle-bot) used by the Mark Rober bot [puzzle_bot](https://github.com/markroberyoutube/puzzle_bot)
+- Based on solution from [puzzle-bot](https://github.com/roksenhorn/puzzle-bot) used by the Mark Rober [puzzle_bot](https://github.com/markroberyoutube/puzzle_bot)
 
 - Python setup and install using [Rye](https://rye.astral.sh/)
