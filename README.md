@@ -15,6 +15,12 @@ Answer the question "are all the puzzle pieces present for this puzzle?"
 rye run puzzle-bot
 ```
 
+## Puzzle photos 📸
+
+- 1 x 24 piece puzzle
+- Photos of all puzzle pieces are in [example_data](example_data)
+- Pieces are clockwise from top right - no code impact, for development simplicity
+
 ## Credits ⭐️
 
 - Based on solution from [puzzle-bot](https://github.com/roksenhorn/puzzle-bot) used by the Mark Rober [puzzle_bot](https://github.com/markroberyoutube/puzzle_bot)
