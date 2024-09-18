@@ -5,19 +5,19 @@ import os
 from PIL import Image, ExifTags
 
 def get_orientation(exif):
-    orientation_tag = 274  # The code for 'Orientation' tag
-    orientation_value = exif.get(orientation_tag, None)
-    if orientation_value is not None:
-        return {
-            1: 'Horizontal (normal)',
-            2: 'Mirrored horizontal',
-            3: 'Rotated 180°',
-            4: 'Mirrored vertical',
-            5: 'Mirrored horizontal then rotated 90° CCW',
-            6: 'Rotated 90° CW',
-            7: 'Mirrored horizontal then rotated 90° CW',
-            8: 'Rotated 90° CCW',
-        }.get(orientation_value, 'Unknown')
+    for tag, value in exif.items():
+        if tag == 'Orientation':
+            if value is not None:
+                return {
+                    1: 'Horizontal (normal)',
+                    2: 'Mirrored horizontal',
+                    3: 'Rotated 180°',
+                    4: 'Mirrored vertical',
+                    5: 'Mirrored horizontal then rotated 90° CCW',
+                    6: 'Rotated 90° CW',
+                    7: 'Mirrored horizontal then rotated 90° CW',
+                    8: 'Rotated 90° CCW',
+                }.get(value, 'Unknown')
     return None
 
 def get_exif_data(img):
@@ -175,8 +175,15 @@ def main():
                         print(" - DPI: Not available")
                     if rotation:
                         print(f" - Rotation: {rotation}")
+                        if rotation != 'Horizontal (normal)':
+                            print(f"*** Incompatible Rotation ***")
                     else:
                         print(" - Rotation: Not available")
+                    if width > height:
+                        print(" - Orientation: Landscape")
+                    else:
+                        print(" - Orientation: Portrait")
+                        print("*** Incompatible Orientation: THIS IS A PORTRAIT IMAGE ***")
                     print(f" - Camera Make: {make}")
                     print(f" - Camera Model: {model}")
                     print(f" - Date/Time Taken: {date_time}")
