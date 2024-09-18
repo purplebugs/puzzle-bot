@@ -8,8 +8,6 @@ Instructions below is to get markrouber's puzzle bot to run, in particular ryan'
 
 - Terminal is setup and working
 
-
-
 #### Instructions:
 
 Create environment
@@ -36,7 +34,8 @@ conda install -c conda-forge opencv
 pip install PyQt5
 pip install scipy
 pip install pyserial
-
+pip install Image
+pip install shapely 
 ```
 
 This should allow you to run the **run_batch.py** command:
@@ -45,11 +44,3 @@ This should allow you to run the **run_batch.py** command:
 cd ryan-puzzle-solver/src
 python run_batch.py
 ```
-
-
-
-
-
-
-
-
