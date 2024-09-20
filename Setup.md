@@ -1,10 +1,10 @@
 ## Setup Instructions
 
-Instructions below is to get markrouber's puzzle bot to run, in particular ryan's puzzle-solver, which is the library that does the actual puzzle matching work.  
+Instructions below is to get markrouber's puzzle bot to run, in particular ryan's puzzle-solver, which is the library that does the actual puzzle matching work.
 
 #### Assumptions
 
-- miniconda is installed on a Mac OS 14 
+- miniconda is installed on a Mac OS 14
 
 - Terminal is setup and working
 
@@ -35,7 +35,8 @@ pip install PyQt5
 pip install scipy
 pip install pyserial
 pip install Image
-pip install shapely 
+pip install shapely
+
 ```
 
 This should allow you to run the **run_batch.py** command:
