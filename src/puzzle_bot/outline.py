@@ -7,6 +7,69 @@ import sys
 from scipy.interpolate import splprep, splev
 
 
+def find_closes_corner(corner, component, search_radius):
+    TAB_PCS = 0.3
+    candidate = None
+    box = component['box']
+    height = component['height']
+    width = component['width']
+    x,y = corner
+    min_x = sys.maxsize
+    min_y = sys.maxsize
+    closest_box_point = None
+    for box_point in box:
+        dx = abs(x - box_point[0])
+        dy = abs(y - box_point[1])
+        updateX = False
+        updateY = False
+        if dx < min_x and dx < search_radius * width:
+            updateX = True
+        if dy < min_y and dy < search_radius * height:
+            updateY = True
+        if dx < dy and updateX:
+            if abs(y - box_point[1]) < TAB_PCS * height:
+                closest_box_point = box_point
+                min_x = dx
+        if dy < dx and updateY:
+            if abs(x - box_point[0]) < TAB_PCS * width:
+                closest_box_point = box_point
+                min_y = dy
+    return closest_box_point
+    
+def find_corners_by_approxPoly(component, image_with_contours, search_radius=0.05, eps=0.01):
+    # Approximate contours and find corners
+    print("Approximating contours and finding corners...")
+    corners_list = []
+    contour = component['contour']
+    box = component['box']
+    width = component['width']
+    height = component['height']
+        # Calculate the perimeter of the contour
+    perimeter = cv2.arcLength(contour, True)
+    # Apply contour approximation
+    epsilon = eps * perimeter  # Adjusted epsilon for better corner detection
+    approx = cv2.approxPolyDP(contour, epsilon, True)
+    # Extract corners from the approximated contour
+    corners = approx.reshape(-1, 2)
+    for corner in corners:
+       matching_box_point = find_closes_corner(corner, component, search_radius)
+       if matching_box_point is not None:
+           corners_list.append(corner)
+
+    # Optionally, draw the corners on the image
+    for corner in corners_list:
+        x, y = corner
+        cv2.circle(image_with_contours, (x, y), 5, (0, 0, 255), -1)
+    print(f"Number of corners: {len(corners_list)}")
+
+    # Display the image with contours and corners
+    plt.imshow(cv2.cvtColor(image_with_contours, cv2.COLOR_BGR2RGB))
+    plt.title('Contours with Corners')
+    plt.axis('off')
+    plt.show()
+
+    return np.array(corners_list)
+
 def find_corners_by_angle_change(cnt, angle_threshold=80, window_size=5):
     # Ensure the contour is a 2D array of points
     cnt = cnt.reshape(-1, 2)
@@ -216,6 +279,14 @@ plt.title('Contours')
 plt.axis('off')
 plt.show()
 
+print("Filled contours...")
+bitmap_image = np.zeros_like(filtered_edges)
+cv2.drawContours(bitmap_image, contours, -1, 255, thickness=-1)  # Fill the contour
+# Display the image with filled contours
+plt.imshow(bitmap_image, cmap='gray')
+plt.title('Filled Contours')
+plt.axis('off')
+plt.show()
 
 # Connected component labeling after finding contours
 print("Processing contours to extract component properties...")
@@ -253,10 +324,14 @@ for idx, cnt in enumerate(contours):
         'outline_bitmap': outline_bitmap,
         'min_x': min_x,
         'min_y': min_y,
-        'contour': cnt
+        'contour': cnt,
+        'rect': cv2.boundingRect(cnt),
+        'box': cv2.boxPoints(cv2.minAreaRect(cnt))
     }
     if component['num_pixels'] > 5000:
-        corners = find_corners_by_angle_change(component['contour'], angle_threshold=90)
+        # Find corners
+        corners = find_corners_by_approxPoly(component, image_with_contours, search_radius=0.05, eps=0.04)
+        # corners = find_corners_by_angle_change(component['contour'], angle_threshold=90)
         component['corners'] = corners
         components.append(component)
     else:
@@ -298,80 +373,80 @@ for idx, component in enumerate(components):
     plt.show()
 
 
-# Countours still contains the contour points
+# # Countours still contains the contour points
 
-# Function to fit spline to a set of points
-def fit_spline(points):
-    points = np.array(points)
-    tck, u = splprep([points[:, 0], points[:, 1]], s=0)  # s is the smoothing factor
-    spline_points = splev(u, tck)
-    return np.array(spline_points).T
-
-
-# Function to check if a point is near the top side of the bounding box
-def is_near_top(point, box, threshold=60):
-    return point[1] <= box[:, 1].min() + threshold
+# # Function to fit spline to a set of points
+# def fit_spline(points):
+#     points = np.array(points)
+#     tck, u = splprep([points[:, 0], points[:, 1]], s=0)  # s is the smoothing factor
+#     spline_points = splev(u, tck)
+#     return np.array(spline_points).T
 
 
-# Function to check if a point is near the bottom side of the bounding box
-def is_near_bottom(point, box, threshold=60):
-    return point[1] >= box[:, 1].max() - threshold
+# # Function to check if a point is near the top side of the bounding box
+# def is_near_top(point, box, threshold=60):
+#     return point[1] <= box[:, 1].min() + threshold
 
 
-# Function to check if a point is near the left side of the bounding box
-def is_near_left(point, box, threshold=60):
-    return point[0] <= box[:, 0].min() + threshold
+# # Function to check if a point is near the bottom side of the bounding box
+# def is_near_bottom(point, box, threshold=60):
+#     return point[1] >= box[:, 1].max() - threshold
 
 
-# Function to check if a point is near the right side of the bounding box
-def is_near_right(point, box, threshold=60):
-    return point[0] >= box[:, 0].max() - threshold
+# # Function to check if a point is near the left side of the bounding box
+# def is_near_left(point, box, threshold=60):
+#     return point[0] <= box[:, 0].min() + threshold
+
+
+# # Function to check if a point is near the right side of the bounding box
+# def is_near_right(point, box, threshold=60):
+#     return point[0] >= box[:, 0].max() - threshold
 
 
 
-for idx, cnt in enumerate(contours):
-    # Only process large enough contours to filter out noise
-    if cv2.contourArea(cnt) > 5000:
-        # Step 3: Detect the bounding box and four sides
-        rect = cv2.minAreaRect(cnt)
-        box = cv2.boxPoints(rect)
-        box = np.int32(box)
-        print(f"Contour {idx + 1}: Bounding box: {box}")
+# for idx, cnt in enumerate(contours):
+#     # Only process large enough contours to filter out noise
+#     if cv2.contourArea(cnt) > 5000:
+#         # Step 3: Detect the bounding box and four sides
+#         rect = cv2.minAreaRect(cnt)
+#         box = cv2.boxPoints(rect)
+#         box = np.int32(box)
+#         print(f"Contour {idx + 1}: Bounding box: {box}")
 
-        # Step 4: Split the contour into four sides
-        top_side = []
-        bottom_side = []
-        left_side = []
-        right_side = []
+#         # Step 4: Split the contour into four sides
+#         top_side = []
+#         bottom_side = []
+#         left_side = []
+#         right_side = []
 
-        for point in cnt:
-            point = point[0]  # Flatten the point
-            if is_near_top(point, box):
-                top_side.append(point)
-            elif is_near_bottom(point, box):
-                bottom_side.append(point)
-            elif is_near_left(point, box):
-                left_side.append(point)
-            elif is_near_right(point, box):
-                right_side.append(point)
+#         for point in cnt:
+#             point = point[0]  # Flatten the point
+#             if is_near_top(point, box):
+#                 top_side.append(point)
+#             elif is_near_bottom(point, box):
+#                 bottom_side.append(point)
+#             elif is_near_left(point, box):
+#                 left_side.append(point)
+#             elif is_near_right(point, box):
+#                 right_side.append(point)
 
-        # Step 5: Fit splines for each side
-        top_spline = fit_spline(top_side)
-        bottom_spline = fit_spline(bottom_side)
-        left_spline = fit_spline(left_side)
-        right_spline = fit_spline(right_side)
+#         # Step 5: Fit splines for each side
+#         top_spline = fit_spline(top_side)
+#         bottom_spline = fit_spline(bottom_side)
+#         left_spline = fit_spline(left_side)
+#         right_spline = fit_spline(right_side)
 
-        # Combine splines into a complete piece outline
-        full_spline = np.vstack([top_spline, right_spline, bottom_spline[::-1], left_spline[::-1]])
+#         # Combine splines into a complete piece outline
+#         full_spline = np.vstack([top_spline, right_spline, bottom_spline[::-1], left_spline[::-1]])
 
-        # Step 6: Plot the original contour and the fitted spline
-        plt.figure()
-        plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-        plt.plot(full_spline[:, 0], full_spline[:, 1], 'r-', label='Fitted Spline')
-        plt.plot(cnt[:, 0, 0], cnt[:, 0, 1], 'b--', label='Original Contour')
-        plt.title(f'Puzzle Piece {idx + 1}')
-        plt.legend()
-        plt.axis('off')
-        plt.show()
+#         # Step 6: Plot the original contour and the fitted spline
+#         plt.figure()
+#         plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+#         plt.plot(full_spline[:, 0], full_spline[:, 1], 'r-', label='Fitted Spline')
+#         plt.plot(cnt[:, 0, 0], cnt[:, 0, 1], 'b--', label='Original Contour')
+#         plt.title(f'Puzzle Piece {idx + 1}')
+#         plt.legend()
+#         plt.axis('off')
+#         plt.show()
 
-        print(f'Puzzle Piece {idx + 1} detected and spline fitted.')
+#         print(f'Puzzle Piece {idx + 1} detected and spline fitted.')
