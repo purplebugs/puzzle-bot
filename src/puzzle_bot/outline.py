@@ -199,7 +199,7 @@ def process_image(image):
         }
         if component['num_pixels'] > 5000:
             # Find corners
-            corners = find_corners_by_approxPoly(component, image_with_contours, search_radius=0.05, eps=0.01)
+            corners = find_corners_by_approxPoly(component, image_with_contours, eps=0.01)
             if corners is None:
                 print(f"No corners found for component {idx + 1}. It will be removed.")
                 continue
