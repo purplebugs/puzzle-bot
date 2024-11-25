@@ -18,34 +18,6 @@ def get_line_length(x1, y1, x2, y2):
     length = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
     return length
 
-# def find_closes_corner(corner, component, search_radius):
-#     TAB_PCS = 0.3
-#     candidate = None
-#     box = component['box']
-#     height = component['height']
-#     width = component['width']
-#     x,y = corner
-#     min_x = sys.maxsize
-#     min_y = sys.maxsize
-#     closest_box_point = None
-#     for box_point in box:
-#         dx = abs(x - box_point[0])
-#         dy = abs(y - box_point[1])
-#         updateX = False
-#         updateY = False
-#         if dx < min_x and dx < search_radius * width:
-#             updateX = True
-#         if dy < min_y and dy < search_radius * height:
-#             updateY = True
-#         if dx < dy and updateX:
-#             if abs(y - box_point[1]) < TAB_PCS * height:
-#                 closest_box_point = box_point
-#                 min_x = dx
-#         if dy < dx and updateY:
-#             if abs(x - box_point[0]) < TAB_PCS * width:
-#                 closest_box_point = box_point
-#                 min_y = dy
-#     return closest_box_point
     
 def find_four_corners(corners, component, image_with_contours):
 #return the four corners
@@ -245,67 +217,3 @@ def find_corners_by_approxPoly(component, image_with_contours, eps=0.01):
     plt.show()
 
     return np.array(corners_list)
-
-# def find_corners_by_angle_change(cnt, angle_threshold=80, window_size=5):
-#     # Ensure the contour is a 2D array of points
-#     cnt = cnt.reshape(-1, 2)
-#     num_points = len(cnt)
-#     corners = []
-
-#     # Convert angle threshold to radians
-#     angle_threshold_rad = np.deg2rad(angle_threshold)
-
-#     angles=[]
-#     # Iterate over the contour points with a larger sliding window
-#     for i in range(num_points):
-#         prev_index = (i - window_size) % num_points
-#         next_index = (i + window_size) % num_points
-#         prev_point = cnt[prev_index]
-#         curr_point = cnt[i]
-#         next_point = cnt[next_index]
-
-#         # Vectors from current point to previous and next points
-#         vec1 = prev_point - curr_point
-#         vec2 = next_point - curr_point
-
-#         # Normalize the vectors
-#         vec1_norm = vec1 / np.linalg.norm(vec1) if np.linalg.norm(vec1) != 0 else vec1
-#         vec2_norm = vec2 / np.linalg.norm(vec2) if np.linalg.norm(vec2) != 0 else vec2
-
-#         # Compute the angle between the vectors
-#         dot_product = np.dot(vec1_norm, vec2_norm)
-#         # Ensure dot_product is within valid range for arccos
-#         dot_product = np.clip(dot_product, -1.0, 1.0)
-#         angle = np.arccos(dot_product)
-#         angles.append(angle)
-
-
-#         # If the angle is less than the threshold, consider it a corner
-#         if angle <= angle_threshold_rad:
-#             corners.append(curr_point)
-
-#     # Remove duplicate points
-#     corners = np.unique(corners, axis=0)
-
-#     angles_array = np.array(angles)
-#     print('Angles array:', angles_array)
-#     sorted_indices = np.argsort(angles_array)
-#     print('Sorted indices:', sorted_indices)
-#     smallest_angles = sorted_indices[:4]
-#     print('Smallest angles:', smallest_angles)
-#     smallest_numbers = angles_array[smallest_angles]
-#     print('Smallest numbers:', smallest_numbers)
-    
-    
-#     corners = cnt[smallest_angles]
-#     print('Corners:', corners)
-
-#     plt.plot(angles)
-#     plt.xlabel('Index')
-#     plt.ylabel('Value')
-#     plt.title('Simple Array Plot')
-#     plt.show()
-
-    
-
-#     return corners
